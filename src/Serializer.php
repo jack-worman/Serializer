@@ -151,12 +151,12 @@ class Serializer
     }
 
 
-
-
     /**
      * @param string $serializedObject
      * @param string $type
      * @return mixed
+     * @throws \ReflectionException
+     * @throws AnnotationReaderException
      */
     public static function deserialize($serializedObject, $type)
     {
@@ -168,6 +168,7 @@ class Serializer
      * @param string $type
      * @return mixed
      * @throws \ReflectionException
+     * @throws AnnotationReaderException
      */
     public static function convertToClass($objectOrArray, $type)
     {
