@@ -1,0 +1,6 @@
+{
+    "bool_property": false,
+    "int_property": 5,
+    "float_property": 1.5,
+    "string_property": "fizzbuzz"
+}
