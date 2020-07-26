@@ -102,4 +102,14 @@ class Entity1
         $this->stdClass = $stdClass;
         $this->entity = $entity;
     }
+
+    /**
+     * @param Entity1|null $entity
+     * @return Entity1
+     */
+    public function setEntity($entity)
+    {
+        $this->entity = $entity;
+        return $this;
+    }
 }

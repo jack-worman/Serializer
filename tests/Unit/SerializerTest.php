@@ -21,7 +21,7 @@ class SerializerTest extends TestCase
     use MatchesSnapshots;
 
     /**
-     * @covers \JWorman\Serializer\Serializer::serializeEntity
+     * @covers \JWorman\Serializer\Serializer::serialize
      */
     public function testSerializer()
     {
@@ -42,7 +42,7 @@ class SerializerTest extends TestCase
 
         $entity1 = new Entity1($middleArray, $middleAssociativeArray, $middleStdClass, $middleEntity);
 
-        $serializedEntity = Serializer::serialize($entity1);
+        $serializedEntity = Serializer::serialize($entity1, Serializer::ENCODING_TYPE_JSON, 3);
         // assertMatchesJsonSnapshot() incorrectly converts empty objects, {}, to empty arrays, [].
         $this->assertMatchesSnapshot($serializedEntity);
     }
@@ -129,5 +129,16 @@ class SerializerTest extends TestCase
             'std_class' => $stdClass,
             'entity' => $entity
         );
+    }
+
+    /**
+     * @covers \JWorman\Serializer\Serializer::serialize
+     */
+    public function testSerializeRecursionLimit()
+    {
+        $entity1 = new Entity1();
+        $entity1->setEntity($entity1);
+        $this->expectException(get_class(new \RuntimeException()));
+        Serializer::serialize($entity1);
     }
 }

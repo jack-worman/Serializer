@@ -17,50 +17,34 @@ use JWorman\Serializer\Annotations\SerializedName;
  */
 class Serializer
 {
-//    /**
-//     * Creates a stdClass and puts the property values of the object on it with their serialized names.
-//     *
-//     * @param $object
-//     * @return string
-//     * @throws AnnotationReaderException
-//     * @throws \ReflectionException
-//     */
-//    public static function serializeEntity($object)
-//    {
-//        $serializedObject = new \stdClass();
-//        $reflectionClass = new \ReflectionClass($object);
-//        foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-//            $reflectionProperty->setAccessible(true);
-//            /** @var SerializedName $serializedNameAnnotation */
-//            $serializedNameAnnotation = AnnotationReader::getPropertyAnnotation(
-//                $reflectionProperty,
-//                SerializedName::CLASS_NAME
-//            );
-//            $serializedObject->{$serializedNameAnnotation->getName()} = $reflectionProperty->getValue($object);
-//        }
-//        return json_encode($serializedObject);
-//    }
+    const ENCODING_TYPE_JSON = 'encoding-type-json';
 
     /**
      * @param mixed $payload
-     * @param string $encoding
+     * @param string $encodingType
      * @param int $recursionLimit
      * @return string
      */
-    public static function serialize($payload, $encoding = 'json', $recursionLimit = 512)
+    public static function serialize($payload, $encodingType = self::ENCODING_TYPE_JSON, $recursionLimit = 512)
     {
-        if ($encoding !== 'json') {
-            throw new \InvalidArgumentException('Currently only supports JSON encoding.');
+        if ($encodingType !== self::ENCODING_TYPE_JSON) {
+            throw new \InvalidArgumentException('Only JSON encoding is supported.');
+        } elseif ($recursionLimit < 0) {
+            throw new \InvalidArgumentException('The recursion limit must be greater than zero.');
         }
-        return substr(self::serializePayload($payload), 0, -1);
+        return substr(self::serializePayload($payload, $recursionLimit), 0, -1);
     }
 
     /**
      * @param mixed $payload
+     * @param int $recursionLimit
      * @return string
      */
-    private static function serializePayload($payload)
+    private static function serializePayload($payload, $recursionLimit)
     {
+        if ($recursionLimit === -1) {
+            throw new \RuntimeException('Recursion limit exceeded.');
+        }
         switch (gettype($payload)) {
             case 'boolean':
                 return $payload ? 'true,' : 'false,';
@@ -70,12 +54,12 @@ class Serializer
             case 'string':
                 return '"' . $payload . '",';
             case 'array':
-                return self::serializeArray($payload) . ',';
+                return self::serializeArray($payload, $recursionLimit - 1) . ',';
             case 'object':
                 return (
                     get_class($payload) === 'stdClass'
-                        ? self::serializeStdClass($payload)
-                        : self::serializeEntity($payload)
+                        ? self::serializeStdClass($payload, $recursionLimit - 1)
+                        : self::serializeEntity($payload, $recursionLimit - 1)
                     ) . ',';
             case 'NULL':
                 return 'null,';
@@ -86,9 +70,10 @@ class Serializer
 
     /**
      * @param object $entity
+     * @param int $recursionLimit
      * @return string
      */
-    private static function serializeEntity($entity)
+    private static function serializeEntity($entity, $recursionLimit)
     {
         try {
             $reflectionClass = new \ReflectionClass($entity);
@@ -109,41 +94,46 @@ class Serializer
             } catch (AnnotationReaderException $e) {
                 $key = $reflectionProperty->getName();
             }
-            $serializedEntity .= '"' . $key . '":' . self::serializePayload($reflectionProperty->getValue($entity));
+            $serializedEntity .= '"' . $key . '":' . self::serializePayload(
+                    $reflectionProperty->getValue($entity),
+                    $recursionLimit
+                );
         }
         return substr($serializedEntity, 0, -1) . '}';
     }
 
     /**
      * @param array $array
+     * @param int $recursionLimit
      * @return string
      */
-    private static function serializeArray(array $array)
+    private static function serializeArray(array $array, $recursionLimit)
     {
         if (empty($array)) {
             return '[]';
         } elseif (self::isAssociativeArray($array)) {
-            return self::serializeStdClass((object)$array);
+            return self::serializeStdClass((object)$array, $recursionLimit);
         }
         $serializedArray = '[';
         foreach ($array as $value) {
-            $serializedArray .= self::serializePayload($value);
+            $serializedArray .= self::serializePayload($value, $recursionLimit);
         }
         return substr($serializedArray, 0, -1) . ']';
     }
 
     /**
      * @param \stdClass $stdClass
+     * @param int $recursionLimit
      * @return string
      */
-    private static function serializeStdClass(\stdClass $stdClass)
+    private static function serializeStdClass(\stdClass $stdClass, $recursionLimit)
     {
         if (count((array)$stdClass) === 0) {
             return '{}';
         }
         $serializedStdClass = '{';
         foreach ($stdClass as $key => $value) {
-            $serializedStdClass .= '"' . $key . '":' . self::serializePayload($value);
+            $serializedStdClass .= '"' . $key . '":' . self::serializePayload($value, $recursionLimit);
         }
         return substr($serializedStdClass, 0, -1) . '}';
     }
