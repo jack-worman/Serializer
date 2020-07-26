@@ -4,11 +4,11 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e6261f63530fa8702ebc6fc94b8c83e",
+    "content-hash": "56c2eff3879e04e19c3287ffe9091fe0",
     "packages": [
         {
-            "name": "hc_jworman/annotation-reader",
-            "version": "dev-master",
+            "name": "jworman/annotation-reader",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hc-jworman/AnnotationReader.git",
@@ -1664,9 +1664,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "hc_jworman/annotation-reader": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
