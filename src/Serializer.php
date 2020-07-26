@@ -7,9 +7,9 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\Serializer\Annotations\SerializedName;
 use JWorman\AnnotationReader\AnnotationReader;
 use JWorman\AnnotationReader\Exceptions\AnnotationReaderException;
+use JWorman\Serializer\Annotations\SerializedName;
 
 /**
  * Class Serializer
@@ -72,14 +72,19 @@ class Serializer
         return substr($serializedObject, 0, -1) . '}';
     }
 
-    private static function isAssoc(array $arr)
+    private static function isAssoc(array $array)
     {
-        return array() === $arr || array_keys($arr) !== range(0, count($arr) - 1);
+        if (array() === $array) {
+            return false;
+        }
+        return array_keys($array) !== range(0, count($array) - 1);
     }
 
     private static function serializeArray(array $array)
     {
-        if (self::isAssoc($array)) {
+        if (empty($array)) {
+            return '[]';
+        } elseif (self::isAssoc($array)) {
             return self::serializeStdClass($array);
         }
         $serializedArray = '[';
@@ -90,10 +95,13 @@ class Serializer
         return $serializedArray;
     }
 
-    private static function serializeStdClass($stdClassOrAssociativeArray)
+    private static function serializeStdClass($stdClass)
     {
+        if (count((array)$stdClass) === 0) {
+            return '{}';
+        }
         $serializedStdClass = '{';
-        foreach ($stdClassOrAssociativeArray as $key => $value) {
+        foreach ($stdClass as $key => $value) {
             $serializedStdClass .= "\"$key\":" . self::buildValue($value);
         }
         $serializedStdClass = substr($serializedStdClass, 0, -1) . '}';

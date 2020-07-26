@@ -25,44 +25,100 @@ class SerializerTest extends TestCase
      */
     public function testSerializer()
     {
-        $stdClass = new \stdClass();
-        $stdClass->prop1 = '1';
-        $stdClass->prop2 = array(
-            '12323',
-            array('1312' => '321312', '123')
+        $innerArray = $this->createArray(null, null, null, null);
+        $innerAssociativeArray = $this->createAssociativeArray(null, null, null, null);
+        $innerStdClass = $this->createStdClass(null, null, null, null);
+        $innerEntity = new Entity1(null, null, null, null);
+
+        $middleArray = $this->createArray($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
+        $middleAssociativeArray = $this->createAssociativeArray(
+            $innerArray,
+            $innerAssociativeArray,
+            $innerStdClass,
+            $innerEntity
         );
+        $middleStdClass = $this->createStdClass($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
+        $middleEntity = new Entity1($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
 
-        $entity2 = new Entity1();
-        $entity2
-            ->setNull(null)
-            ->setBool(false)
-            ->setFloat(3.14159265358979)
-            ->setInt(5)
-            ->setString('fizzbuzz')
-            ->setArray(array(false, 1.5, 5, 'fizzbuzz'))
-            ->setAssociativeArray(array('key' => false, 1.5, 5, 'fizzbuzz'))
-            ->setStdClass($stdClass)
-            ->setEntity(null);
-
-        $entity1 = new Entity1();
-        $entity1
-            ->setNull(null)
-            ->setBool(false)
-            ->setFloat(3.14159265358979)
-            ->setInt(5)
-            ->setString('fizzbuzz')
-            ->setArray(array(false, 1.5, 5, 'fizzbuzz'))
-            ->setAssociativeArray(array('key' => false, 1.5, 5, 'fizzbuzz'))
-            ->setStdClass($stdClass)
-            ->setEntity($entity2);
-
-
+        $entity1 = new Entity1($middleArray, $middleAssociativeArray, $middleStdClass, $middleEntity);
 
         $serializedEntity = Serializer::serialize($entity1);
-        var_dump($serializedEntity);
+        /**
+         * There is a bug that converts empty objects to [] instead of {}. The serializer works correctly, the snapshot
+         * test is the one that's wrong. So, I had to manually change the snapshot.
+         */
         $this->assertMatchesJsonSnapshot($serializedEntity);
+    }
 
-//        $unserializedEntity = Serializer::deserialize(json_decode($serializedEntity), Entity1::CLASS_NAME);
-//        var_dump($unserializedEntity);
+    /**
+     * @param $array
+     * @param $associativeArray
+     * @param $stdClass
+     * @param $entity
+     * @return \stdClass
+     */
+    private function createStdClass($array, $associativeArray, $stdClass, $entity)
+    {
+        $createdStdClass = new \stdClass();
+        $createdStdClass->null = null;
+        $createdStdClass->bool = true;
+        $createdStdClass->int = 42;
+        $createdStdClass->float = 3.14159265358979;
+        $createdStdClass->string = 'fizzbuzz';
+        $createdStdClass->empty_array = array();
+        $createdStdClass->array = $array;
+        $createdStdClass->associative_array = $associativeArray;
+        $createdStdClass->empty_std_class = new \stdClass();
+        $createdStdClass->std_class = $stdClass;
+        $createdStdClass->entity = $entity;
+        return $createdStdClass;
+    }
+
+    /**
+     * @param $array
+     * @param $associativeArray
+     * @param $stdClass
+     * @param $entity
+     * @return array
+     */
+    private function createArray($array, $associativeArray, $stdClass, $entity)
+    {
+        return array(
+            null,
+            true,
+            42,
+            3.14159265358979,
+            'fizzbuzz',
+            array(),
+            $array,
+            $associativeArray,
+            new \stdClass(),
+            $stdClass,
+            $entity
+        );
+    }
+
+    /**
+     * @param $array
+     * @param $associativeArray
+     * @param $stdClass
+     * @param $entity
+     * @return array
+     */
+    private function createAssociativeArray($array, $associativeArray, $stdClass, $entity)
+    {
+        return array(
+            'null' => null,
+            'bool' => false,
+            'int' => 42,
+            'float' => 3.14159265358979,
+            'string' => 'fizzbuzz',
+            'empty_array' => array(),
+            'array' => $array,
+            'associative_array' => $associativeArray,
+            'empty_std_class' => new \stdClass(),
+            'std_class' => $stdClass,
+            'entity' => $entity
+        );
     }
 }

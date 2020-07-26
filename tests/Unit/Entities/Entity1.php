@@ -19,145 +19,87 @@ class Entity1
 
     /**
      * @var null
-     * @SerializedName("null_property")
+     * @SerializedName("null")
      */
-    private $null;
+    private $null = null;
 
     /**
      * @var bool
-     * @SerializedName("bool_property")
+     * @SerializedName("bool")
      */
-    private $bool;
+    private $bool = false;
 
     /**
      * @var int
-     * @SerializedName("int_property")
+     * @SerializedName("int")
      */
-    private $int;
+    private $int = 42;
 
     /**
      * @var float
-     * @SerializedName("float_property")
+     * @SerializedName("float")
      */
-    private $float;
+    private $float = 3.14159265358979;
 
     /**
      * @var string
-     * @SerializedName("string_property")
+     * @SerializedName("string")
      */
-    private $string;
+    private $string = 'fizzbuzz';
 
     /**
      * @var array
-     * @SerializedName("array_property")
+     * @SerializedName("empty_array")
+     */
+    private $emptyArray = array();
+
+    /**
+     * @var array|null
+     * @SerializedName("array")
      */
     private $array;
 
     /**
-     * @var array
-     * @SerializedName("associative_array_property")
+     * @var array|null
+     * @SerializedName("associative_array")
      */
     private $associativeArray;
 
     /**
      * @var \stdClass
-     * @SerializedName("stdClass_property")
+     * @SerializedName("empty_std_class")
+     */
+    private $emptyStdClass;
+
+    /**
+     * @var \stdClass|null
+     * @SerializedName("std_class")
      */
     private $stdClass;
 
     /**
-     * @var Entity1
-     * @SerializedName("entity_property")
+     * @var Entity1|null
+     * @SerializedName("entity")
      */
     private $entity;
 
     /**
-     * @param null $null
-     * @return Entity1
+     * Entity1 constructor.
+     * @param array|null $array
+     * @param array|null $associativeArray
+     * @param \stdClass|null $stdClass
+     * @param Entity1|null $entity
      */
-    public function setNull($null)
-    {
-        $this->null = $null;
-        return $this;
-    }
-
-    /**
-     * @param bool $bool
-     * @return Entity1
-     */
-    public function setBool($bool)
-    {
-        $this->bool = $bool;
-        return $this;
-    }
-
-    /**
-     * @param int $int
-     * @return Entity1
-     */
-    public function setInt($int)
-    {
-        $this->int = $int;
-        return $this;
-    }
-
-    /**
-     * @param float $float
-     * @return Entity1
-     */
-    public function setFloat($float)
-    {
-        $this->float = $float;
-        return $this;
-    }
-
-    /**
-     * @param string $string
-     * @return Entity1
-     */
-    public function setString($string)
-    {
-        $this->string = $string;
-        return $this;
-    }
-
-    /**
-     * @param array $array
-     * @return Entity1
-     */
-    public function setArray($array)
-    {
+    public function __construct(
+        $array,
+        $associativeArray,
+        $stdClass,
+        $entity
+    ) {
         $this->array = $array;
-        return $this;
-    }
-
-    /**
-     * @param array $associativeArray
-     * @return Entity1
-     */
-    public function setAssociativeArray($associativeArray)
-    {
         $this->associativeArray = $associativeArray;
-        return $this;
-    }
-
-    /**
-     * @param \stdClass $stdClass
-     * @return Entity1
-     */
-    public function setStdClass($stdClass)
-    {
+        $this->emptyStdClass = new \stdClass();
         $this->stdClass = $stdClass;
-        return $this;
-    }
-
-    /**
-     * @param Entity1 $entity
-     * @return Entity1
-     */
-    public function setEntity($entity)
-    {
         $this->entity = $entity;
-        return $this;
     }
 }
