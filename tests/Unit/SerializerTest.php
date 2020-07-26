@@ -21,14 +21,14 @@ class SerializerTest extends TestCase
     use MatchesSnapshots;
 
     /**
-     * @covers \JWorman\Serializer\Serializer::serialize
+     * @covers \JWorman\Serializer\Serializer::serializeEntity
      */
     public function testSerializer()
     {
-        $innerArray = $this->createArray(null, null, null, null);
-        $innerAssociativeArray = $this->createAssociativeArray(null, null, null, null);
-        $innerStdClass = $this->createStdClass(null, null, null, null);
-        $innerEntity = new Entity1(null, null, null, null);
+        $innerArray = $this->createArray();
+        $innerAssociativeArray = $this->createAssociativeArray();
+        $innerStdClass = $this->createStdClass();
+        $innerEntity = new Entity1();
 
         $middleArray = $this->createArray($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
         $middleAssociativeArray = $this->createAssociativeArray(
@@ -43,27 +43,28 @@ class SerializerTest extends TestCase
         $entity1 = new Entity1($middleArray, $middleAssociativeArray, $middleStdClass, $middleEntity);
 
         $serializedEntity = Serializer::serialize($entity1);
-        /**
-         * There is a bug that converts empty objects to [] instead of {}. The serializer works correctly, the snapshot
-         * test is the one that's wrong. So, I had to manually change the snapshot.
-         */
-        $this->assertMatchesJsonSnapshot($serializedEntity);
+        // assertMatchesJsonSnapshot() incorrectly converts empty objects, {}, to empty arrays, [].
+        $this->assertMatchesSnapshot($serializedEntity);
     }
 
     /**
-     * @param $array
-     * @param $associativeArray
-     * @param $stdClass
-     * @param $entity
+     * @param array|null $array
+     * @param array|null $associativeArray
+     * @param \stdClass|null $stdClass
+     * @param Entity1|null $entity
      * @return \stdClass
      */
-    private function createStdClass($array, $associativeArray, $stdClass, $entity)
-    {
+    private function createStdClass(
+        array $array = null,
+        array $associativeArray = null,
+        \stdClass $stdClass = null,
+        Entity1 $entity = null
+    ) {
         $createdStdClass = new \stdClass();
         $createdStdClass->null = null;
         $createdStdClass->bool = true;
         $createdStdClass->int = 42;
-        $createdStdClass->float = 3.14159265358979;
+        $createdStdClass->float = 3.14;
         $createdStdClass->string = 'fizzbuzz';
         $createdStdClass->empty_array = array();
         $createdStdClass->array = $array;
@@ -75,19 +76,23 @@ class SerializerTest extends TestCase
     }
 
     /**
-     * @param $array
-     * @param $associativeArray
-     * @param $stdClass
-     * @param $entity
+     * @param array|null $array
+     * @param array|null $associativeArray
+     * @param \stdClass|null $stdClass
+     * @param Entity1|null $entity
      * @return array
      */
-    private function createArray($array, $associativeArray, $stdClass, $entity)
-    {
+    private function createArray(
+        array $array = null,
+        array $associativeArray = null,
+        \stdClass $stdClass = null,
+        Entity1 $entity = null
+    ) {
         return array(
             null,
             true,
             42,
-            3.14159265358979,
+            3.14,
             'fizzbuzz',
             array(),
             $array,
@@ -99,19 +104,23 @@ class SerializerTest extends TestCase
     }
 
     /**
-     * @param $array
-     * @param $associativeArray
-     * @param $stdClass
-     * @param $entity
+     * @param array|null $array
+     * @param array|null $associativeArray
+     * @param \stdClass|null $stdClass
+     * @param Entity1|null $entity
      * @return array
      */
-    private function createAssociativeArray($array, $associativeArray, $stdClass, $entity)
-    {
+    private function createAssociativeArray(
+        array $array = null,
+        array $associativeArray = null,
+        \stdClass $stdClass = null,
+        Entity1 $entity = null
+    ) {
         return array(
             'null' => null,
             'bool' => false,
             'int' => 42,
-            'float' => 3.14159265358979,
+            'float' => 3.14,
             'string' => 'fizzbuzz',
             'empty_array' => array(),
             'array' => $array,

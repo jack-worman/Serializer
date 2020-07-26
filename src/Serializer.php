@@ -25,7 +25,7 @@ class Serializer
 //     * @throws AnnotationReaderException
 //     * @throws \ReflectionException
 //     */
-//    public static function serialize($object)
+//    public static function serializeEntity($object)
 //    {
 //        $serializedObject = new \stdClass();
 //        $reflectionClass = new \ReflectionClass($object);
@@ -42,20 +42,63 @@ class Serializer
 //    }
 
     /**
-     * Creates a stdClass and puts the property values of the object on it with their serialized names.
-     *
-     * @param $object
+     * @param mixed $payload
+     * @param string $encoding
+     * @param int $recursionLimit
      * @return string
-     * @throws \ReflectionException
      */
-    public static function serialize($object)
+    public static function serialize($payload, $encoding = 'json', $recursionLimit = 512)
     {
-        // TODO: Check type here and send to proper serializer (i.e. arrays go to array serializer)
+        if ($encoding !== 'json') {
+            throw new \InvalidArgumentException('Currently only supports JSON encoding.');
+        }
+        return substr(self::serializePayload($payload), 0, -1);
+    }
 
-        $serializedObject = "{";
-        $reflectionClass = new \ReflectionClass($object);
+    /**
+     * @param mixed $payload
+     * @return string
+     */
+    private static function serializePayload($payload)
+    {
+        switch (gettype($payload)) {
+            case 'boolean':
+                return $payload ? 'true,' : 'false,';
+            case 'integer':
+            case 'double':
+                return $payload . ',';
+            case 'string':
+                return '"' . $payload . '",';
+            case 'array':
+                return self::serializeArray($payload) . ',';
+            case 'object':
+                return (
+                    get_class($payload) === 'stdClass'
+                        ? self::serializeStdClass($payload)
+                        : self::serializeEntity($payload)
+                    ) . ',';
+            case 'NULL':
+                return 'null,';
+            default:
+                throw new \InvalidArgumentException('Unsupported type given.');
+        }
+    }
+
+    /**
+     * @param object $entity
+     * @return string
+     */
+    private static function serializeEntity($entity)
+    {
+        try {
+            $reflectionClass = new \ReflectionClass($entity);
+        } catch (\ReflectionException $e) {
+            throw new \LogicException($e->getMessage(), 0, $e);
+        }
+        $serializedEntity = '{';
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             $reflectionProperty->setAccessible(true);
+            // TODO: I am not sure about this try/catch.
             try {
                 /** @var SerializedName $serializedNameAnnotation */
                 $serializedNameAnnotation = AnnotationReader::getPropertyAnnotation(
@@ -66,77 +109,55 @@ class Serializer
             } catch (AnnotationReaderException $e) {
                 $key = $reflectionProperty->getName();
             }
-
-            $serializedObject .= "\"$key\":" . self::buildValue($reflectionProperty->getValue($object));
+            $serializedEntity .= '"' . $key . '":' . self::serializePayload($reflectionProperty->getValue($entity));
         }
-        return substr($serializedObject, 0, -1) . '}';
+        return substr($serializedEntity, 0, -1) . '}';
     }
 
-    private static function isAssoc(array $array)
-    {
-        if (array() === $array) {
-            return false;
-        }
-        return array_keys($array) !== range(0, count($array) - 1);
-    }
-
+    /**
+     * @param array $array
+     * @return string
+     */
     private static function serializeArray(array $array)
     {
         if (empty($array)) {
             return '[]';
-        } elseif (self::isAssoc($array)) {
-            return self::serializeStdClass($array);
+        } elseif (self::isAssociativeArray($array)) {
+            return self::serializeStdClass((object)$array);
         }
         $serializedArray = '[';
         foreach ($array as $value) {
-            $serializedArray .= self::buildValue($value);
+            $serializedArray .= self::serializePayload($value);
         }
-        $serializedArray = substr($serializedArray, 0, -1) . ']';
-        return $serializedArray;
+        return substr($serializedArray, 0, -1) . ']';
     }
 
-    private static function serializeStdClass($stdClass)
+    /**
+     * @param \stdClass $stdClass
+     * @return string
+     */
+    private static function serializeStdClass(\stdClass $stdClass)
     {
         if (count((array)$stdClass) === 0) {
             return '{}';
         }
         $serializedStdClass = '{';
         foreach ($stdClass as $key => $value) {
-            $serializedStdClass .= "\"$key\":" . self::buildValue($value);
+            $serializedStdClass .= '"' . $key . '":' . self::serializePayload($value);
         }
-        $serializedStdClass = substr($serializedStdClass, 0, -1) . '}';
-        return $serializedStdClass;
+        return substr($serializedStdClass, 0, -1) . '}';
     }
 
-    private static function buildValue($value)
+    /**
+     * @param array $array
+     * @return bool
+     */
+    private static function isAssociativeArray(array $array)
     {
-        $serializedValue = '';
-        switch (gettype($value)) {
-            case 'boolean':
-                $serializedValue .= ($value ? 'true' : 'false');
-                break;
-            case 'integer':
-            case 'double':
-                $serializedValue .= "$value";
-                break;
-            case 'string':
-                $serializedValue .= "\"$value\"";
-                break;
-            case 'array':
-                $serializedValue .= self::serializeArray($value);
-                break;
-            case 'object':
-                if (get_class($value) === 'stdClass') {
-                    $serializedValue .= self::serializeStdClass($value);
-                } else {
-                    $serializedValue .= self::serialize($value);
-                }
-                break;
-            case 'NULL':
-                $serializedValue .= 'null';
-                break;
+        if (empty($array)) {
+            return false;
         }
-        return "$serializedValue,";
+        return array_keys($array) !== range(0, count($array) - 1);
     }
 
 

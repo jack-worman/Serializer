@@ -39,7 +39,7 @@ class Entity1
      * @var float
      * @SerializedName("float")
      */
-    private $float = 3.14159265358979;
+    private $float = 3.14;
 
     /**
      * @var string
@@ -91,10 +91,10 @@ class Entity1
      * @param Entity1|null $entity
      */
     public function __construct(
-        $array,
-        $associativeArray,
-        $stdClass,
-        $entity
+        array $array = null,
+        array $associativeArray = null,
+        \stdClass $stdClass = null,
+        Entity1 $entity = null
     ) {
         $this->array = $array;
         $this->associativeArray = $associativeArray;
