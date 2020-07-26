@@ -1,5 +1,5 @@
 {
-    "name": "hc_jworman/serializer",
+    "name": "jworman/serializer",
     "description": "Allows the (de)serialization of objects.",
     "autoload": {
         "psr-4": {
