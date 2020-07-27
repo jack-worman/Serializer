@@ -15,7 +15,7 @@ use JWorman\Serializer\Annotations\SerializedName;
  * Class JsonSerializer
  * @package JWorman\Serializer
  */
-class JsonSerializer extends Serializer
+final class JsonSerializer extends Serializer
 {
     /**
      * @param mixed $payload
@@ -68,18 +68,6 @@ class JsonSerializer extends Serializer
     }
 
     /**
-     * @param array $array
-     * @return bool
-     */
-    private static function isAssociativeArray(array $array)
-    {
-        if (empty($array)) {
-            return false;
-        }
-        return array_keys($array) !== range(0, count($array) - 1);
-    }
-
-    /**
      * @param \stdClass $stdClass
      * @param int $recursionLimit
      * @return string
@@ -123,5 +111,17 @@ class JsonSerializer extends Serializer
                 . self::serializePayload($reflectionProperty->getValue($entity), $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
+    }
+
+    /**
+     * @param array $array
+     * @return bool
+     */
+    private static function isAssociativeArray(array $array)
+    {
+        if (empty($array)) {
+            return false;
+        }
+        return array_keys($array) !== range(0, count($array) - 1);
     }
 }
