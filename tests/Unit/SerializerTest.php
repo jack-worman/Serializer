@@ -41,8 +41,12 @@ class SerializerTest extends TestCase
         $middleEntity = new Entity1($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
 
         $entity1 = new Entity1($middleArray, $middleAssociativeArray, $middleStdClass, $middleEntity);
-
+//
+//        $start = microtime(true);
+//        for ($i = 0; $i < 5000; $i++) {
         $serializedEntity = Serializer::serialize($entity1, Serializer::ENCODING_TYPE_JSON, 3);
+//        }
+//        var_dump(microtime(true) - $start);
         // assertMatchesJsonSnapshot() incorrectly converts empty objects, {}, to empty arrays, [].
         $this->assertMatchesSnapshot($serializedEntity);
     }

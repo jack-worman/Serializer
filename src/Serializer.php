@@ -64,7 +64,7 @@ class Serializer
             case 'NULL':
                 return 'null,';
             default:
-                throw new \InvalidArgumentException('Unsupported type given.');
+                throw new \InvalidArgumentException('Unsupported type given: "' . gettype($payload) . '"');
         }
     }
 
@@ -150,18 +150,70 @@ class Serializer
         return array_keys($array) !== range(0, count($array) - 1);
     }
 
-
     /**
-     * @param string $serializedObject
+     * @param string $payload
      * @param string $type
+     * @param string $encodingType
      * @return mixed
-     * @throws \ReflectionException
-     * @throws AnnotationReaderException
      */
-    public static function deserialize($serializedObject, $type)
+    public static function deserialize($payload, $type, $encodingType = self::ENCODING_TYPE_JSON)
     {
-        return self::convertToClass(json_decode($serializedObject), $type);
+        var_dump($payload);
+//        $firstLetter = substr($serializedObject, 0, 1);
+//        switch ($serializedObject[0]) {
+//            case '{':
+//                // object
+//                break;
+//            case '[':
+//                // array
+//                break;
+//            case '"':
+//                return substr($serializedObject, 0, strpos($serializedObject, '"', 1) + 1);
+//            case 't':
+//                return true;
+//            case 'f':
+//                return false;
+//            case 'n':
+//                return null;
+//            default:
+//                throw new \InvalidArgumentException('Invalid JSON.');
+//        }
+        switch ($type) {
+            case 'bool':
+                return (bool)$payload;
+            case 'int':
+                return (int)$payload;
+            case 'float':
+                return (float)$payload;
+            case 'string':
+                return (string)$payload;
+            case 'array':
+//                return self::serializeArray($payload, $recursionLimit - 1) . ',';
+            case 'object':
+//                return (
+//                    get_class($payload) === 'stdClass'
+//                        ? self::serializeStdClass($payload, $recursionLimit - 1)
+//                        : self::serializeEntity($payload, $recursionLimit - 1)
+//                    ) . ',';
+            case 'null':
+                return null;
+            default:
+                throw new \InvalidArgumentException('Unsupported type given.');
+        }
     }
+
+
+//    /**
+//     * @param string $serializedObject
+//     * @param string $type
+//     * @return mixed
+//     * @throws \ReflectionException
+//     * @throws AnnotationReaderException
+//     */
+//    public static function deserialize($serializedObject, $type)
+//    {
+//        return self::convertToClass(json_decode($serializedObject), $type);
+//    }
 
     /**
      * @param \stdClass|array $objectOrArray
