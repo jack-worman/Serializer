@@ -18,6 +18,50 @@ use JWorman\Serializer\Annotations\SerializedName;
 class JsonDeserializer extends Serializer
 {
     /**
+     * @param string $payload
+     * @param string $type
+     * @return mixed
+     */
+    protected static function deserializePayload($payload, $type)
+    {
+        switch ($type) {
+            case 'bool':
+                return self::deserializeBool($payload);
+            case 'int':
+                return (int)$payload;
+            case 'float':
+                return (float)$payload;
+            case 'string':
+                return $payload;
+            case 'array':
+                // deserializeArray()
+            case 'object':
+                // deserializeObject()
+            case 'null':
+                return null;
+            default:
+                try {
+                    $reflectionClass = new \ReflectionClass($type);
+                    // deserializeEntity()
+                    return 'null';
+                } catch (\ReflectionException $e) {
+                    throw new \InvalidArgumentException('Unsupported type given.');
+                }
+        }
+    }
+
+    /**
+     * @param string $payload
+     * @return bool
+     */
+    private static function deserializeBool($payload)
+    {
+        // TODO: Check for invalid json.
+        return $payload === 'true';
+    }
+
+
+    /**
      * @param \ReflectionClass $reflectionClass
      * @return string[]
      * @throws AnnotationReaderException

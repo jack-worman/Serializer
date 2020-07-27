@@ -36,57 +36,21 @@ class Serializer
         }
     }
 
-//    /**
-//     * @param string $payload
-//     * @param string $type
-//     * @param string $encodingType
-//     * @return mixed
-//     */
-//    public static function deserialize($payload, $type, $encodingType = self::ENCODING_TYPE_JSON)
-//    {
-//        var_dump($payload);
-////        $firstLetter = substr($serializedObject, 0, 1);
-////        switch ($serializedObject[0]) {
-////            case '{':
-////                // object
-////                break;
-////            case '[':
-////                // array
-////                break;
-////            case '"':
-////                return substr($serializedObject, 0, strpos($serializedObject, '"', 1) + 1);
-////            case 't':
-////                return true;
-////            case 'f':
-////                return false;
-////            case 'n':
-////                return null;
-////            default:
-////                throw new \InvalidArgumentException('Invalid JSON.');
-////        }
-//        switch ($type) {
-//            case 'bool':
-//                return (bool)$payload;
-//            case 'int':
-//                return (int)$payload;
-//            case 'float':
-//                return (float)$payload;
-//            case 'string':
-//                return (string)$payload;
-//            case 'array':
-////                return self::serializeArray($payload, $recursionLimit - 1) . ',';
-//            case 'object':
-////                return (
-////                    get_class($payload) === 'stdClass'
-////                        ? self::serializeStdClass($payload, $recursionLimit - 1)
-////                        : self::serializeEntity($payload, $recursionLimit - 1)
-////                    ) . ',';
-//            case 'null':
-//                return null;
-//            default:
-//                throw new \InvalidArgumentException('Unsupported type given.');
-//        }
-//    }
+    /**
+     * @param mixed $payload
+     * @param string $type
+     * @param string $encodingType
+     * @return string
+     */
+    public static function deserialize($payload, $type, $encodingType = self::ENCODING_TYPE_JSON)
+    {
+        switch ($encodingType) {
+            case self::ENCODING_TYPE_JSON:
+                return JsonDeserializer::deserializePayload($payload, $type);
+            default:
+                throw new \InvalidArgumentException('Only JSON encoding is supported.');
+        }
+    }
 
     /**
      * @param \stdClass|array $objectOrArray

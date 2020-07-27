@@ -32,9 +32,9 @@ final class JsonSerializer extends Serializer
                 return $payload ? 'true' : 'false';
             case 'integer':
             case 'double':
-                return $payload;
+                return (string)$payload;
             case 'string':
-                return '"' . $payload . '"';
+                return json_encode($payload);
             case 'array':
                 return self::serializeArray($payload, $recursionLimit - 1);
             case 'object':
@@ -76,7 +76,7 @@ final class JsonSerializer extends Serializer
     {
         $properties = array();
         foreach ($stdClass as $key => $value) {
-            $properties[] = '"' . $key . '":' . self::serializePayload($value, $recursionLimit);
+            $properties[] = json_encode($key) . ':' . self::serializePayload($value, $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
     }
@@ -107,7 +107,7 @@ final class JsonSerializer extends Serializer
             } catch (AnnotationReaderException $e) {
                 $key = $reflectionProperty->getName();
             }
-            $properties[] = '"' . $key . '":'
+            $properties[] = json_encode($key) . ':'
                 . self::serializePayload($reflectionProperty->getValue($entity), $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
