@@ -7,7 +7,7 @@
 
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
-use JWorman\Serializer\Annotations\SerializedName;
+use JWorman\Serializer\Annotations as Serializer;
 
 /**
  * Class Entity1
@@ -19,67 +19,78 @@ class Entity1
 
     /**
      * @var null
-     * @SerializedName("null")
+     * @Serializer\SerializedName("null")
+     * @Serializer\Type("null")
      */
     private $null = null;
 
     /**
      * @var bool
-     * @SerializedName("bool")
+     * @Serializer\SerializedName("bool")
+     * @Serializer\Type("bool")
      */
     private $bool = false;
 
     /**
      * @var int
-     * @SerializedName("int")
+     * @Serializer\SerializedName("int")
+     * @Serializer\Type("int")
      */
     private $int = 42;
 
     /**
      * @var float
-     * @SerializedName("float")
+     * @Serializer\SerializedName("float")
+     * @Serializer\Type("float")
      */
     private $float = 3.14;
 
     /**
      * @var string
-     * @SerializedName("string")
+     * @Serializer\SerializedName("string")
+     * @Serializer\Type("string")
      */
     private $string = 'fizzbuzz';
 
     /**
      * @var array
-     * @SerializedName("empty_array")
+     * @Serializer\SerializedName("empty_array")
+     * @Serializer\Type("array")
      */
     private $emptyArray = array();
 
     /**
      * @var array|null
-     * @SerializedName("array")
+     * @Serializer\SerializedName("array")
+     * @Serializer\Type("array")
      */
     private $array;
 
     /**
      * @var array|null
-     * @SerializedName("associative_array")
+     * @Serializer\SerializedName("associative_array")
+     * @Serializer\Type("array")
      */
     private $associativeArray;
 
     /**
      * @var \stdClass
-     * @SerializedName("empty_std_class")
+     * @Serializer\SerializedName("empty_std_class")
+     * @Serializer\Type("object")
      */
     private $emptyStdClass;
 
     /**
      * @var \stdClass|null
-     * @SerializedName("std_class")
+     * @Serializer\SerializedName("std_class")
+     * @Serializer\Type("object")
      */
     private $stdClass;
 
     /**
      * @var Entity1|null
-     * @SerializedName("entity")
+     * @Serializer\SerializedName("entity")
+     * @Serializer\Type("JWorman\Serializer\Tests\Unit\Entities\Entity1")
      */
     private $entity;
 
