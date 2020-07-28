@@ -18,35 +18,35 @@ use JWorman\Serializer\Annotations\SerializedName;
 final class JsonSerializer extends Serializer
 {
     /**
-     * @param mixed $payload
+     * @param mixed $value
      * @param int $recursionLimit
      * @return string
      */
-    protected static function serializePayload($payload, $recursionLimit)
+    protected static function serializeValue($value, $recursionLimit)
     {
         if ($recursionLimit === -1) {
             throw new \RuntimeException('Recursion limit exceeded.');
         }
-        switch (gettype($payload)) {
+        switch (gettype($value)) {
             case 'boolean':
-                return $payload ? 'true' : 'false';
+                return $value ? 'true' : 'false';
             case 'integer':
             case 'double':
-                return (string)$payload;
+                return (string)$value;
             case 'string':
-                return json_encode($payload);
+                return json_encode($value);
             case 'array':
-                return self::serializeArray($payload, $recursionLimit - 1);
+                return self::serializeArray($value, $recursionLimit - 1);
             case 'object':
-                return (
-                get_class($payload) === 'stdClass'
-                    ? self::serializeStdClass($payload, $recursionLimit - 1)
-                    : self::serializeEntity($payload, $recursionLimit - 1)
-                );
+                if (get_class($value) === 'stdClass') {
+                    return self::serializeStdClass($value, $recursionLimit - 1);
+                } else {
+                    return self::serializeEntity($value, $recursionLimit - 1);
+                }
             case 'NULL':
                 return 'null';
             default:
-                throw new \InvalidArgumentException('Unsupported type given: "' . gettype($payload) . '"');
+                throw new \InvalidArgumentException('Unsupported type given: "' . gettype($value) . '"');
         }
     }
 
@@ -62,7 +62,7 @@ final class JsonSerializer extends Serializer
         }
         $values = array();
         foreach ($array as $value) {
-            $values[] = self::serializePayload($value, $recursionLimit);
+            $values[] = self::serializeValue($value, $recursionLimit);
         }
         return '[' . implode(',', $values) . ']';
     }
@@ -76,7 +76,7 @@ final class JsonSerializer extends Serializer
     {
         $properties = array();
         foreach ($stdClass as $key => $value) {
-            $properties[] = json_encode($key) . ':' . self::serializePayload($value, $recursionLimit);
+            $properties[] = json_encode($key) . ':' . self::serializeValue($value, $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
     }
@@ -108,7 +108,7 @@ final class JsonSerializer extends Serializer
                 $key = $reflectionProperty->getName();
             }
             $properties[] = json_encode($key) . ':'
-                . self::serializePayload($reflectionProperty->getValue($entity), $recursionLimit);
+                . self::serializeValue($reflectionProperty->getValue($entity), $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
     }

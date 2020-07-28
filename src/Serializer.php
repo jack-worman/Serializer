@@ -18,7 +18,7 @@ use JWorman\Serializer\Annotations\Type;
  */
 class Serializer
 {
-    const ENCODING_TYPE_JSON = 'encoding-type-json';
+    const FORMAT_JSON = 'encoding-type-json';
 
     /**
      * @param mixed $payload
@@ -26,14 +26,14 @@ class Serializer
      * @param int $recursionLimit
      * @return string
      */
-    public static function serialize($payload, $encodingType = self::ENCODING_TYPE_JSON, $recursionLimit = 512)
+    public static function serialize($payload, $encodingType = self::FORMAT_JSON, $recursionLimit = 512)
     {
         if ($recursionLimit < 0) {
             throw new \InvalidArgumentException('The recursion limit cannot be negative.');
         }
         switch ($encodingType) {
-            case self::ENCODING_TYPE_JSON:
-                return JsonSerializer::serializePayload($payload, $recursionLimit);
+            case self::FORMAT_JSON:
+                return JsonSerializer::serializeValue($payload, $recursionLimit);
             default:
                 throw new \InvalidArgumentException('Only JSON encoding is supported.');
         }
@@ -42,18 +42,18 @@ class Serializer
     /**
      * @param mixed $json
      * @param string $type
-     * @param string $encodingType
-     * @return string
+     * @param string $format
+     * @return mixed
      */
-    public static function deserialize($json, $type, $encodingType = self::ENCODING_TYPE_JSON)
+    public static function deserialize($json, $type, $format = self::FORMAT_JSON)
     {
-        switch ($encodingType) {
-            case self::ENCODING_TYPE_JSON:
+        switch ($format) {
+            case self::FORMAT_JSON:
                 $decodedJson = json_decode($json);
-                if (json_last_error()) {
+                if (json_last_error() !== JSON_ERROR_NONE) {
                     throw new \InvalidArgumentException('Invalid JSON given.');
                 }
-                return self::castToType($decodedJson, $type);
+                return self::convertToType($decodedJson, $type);
             default:
                 throw new \InvalidArgumentException('Only JSON encoding is supported.');
         }
@@ -64,7 +64,7 @@ class Serializer
      * @param string $type
      * @return mixed
      */
-    public static function castToType($value, $type)
+    public static function convertToType($value, $type)
     {
         // Casting to primitive:
         switch ($type) {
@@ -91,7 +91,7 @@ class Serializer
         try {
             $reflectionClass = new \ReflectionClass($object);
         } catch (\ReflectionException $e) {
-            throw new \LogicException('This shouldn\'t be possible.');
+            throw new \RuntimeException("$type is unsupported.", 0, $e);
         }
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             try {
@@ -102,7 +102,7 @@ class Serializer
             $serializedName = self::getSerializedName($reflectionProperty);
             if (isset($value[$serializedName])) {
                 $reflectionProperty->setAccessible(true);
-                $reflectionProperty->setValue($object, self::castToType($value[$serializedName], $type));
+                $reflectionProperty->setValue($object, self::convertToType($value[$serializedName], $type));
             }
         }
         return $object;
