@@ -7,6 +7,7 @@
 
 namespace JWorman\Serializer\Tests\Unit;
 
+use JWorman\Serializer\JsonDeserializer;
 use JWorman\Serializer\Serializer;
 use JWorman\Serializer\Tests\Unit\Entities\Entity1;
 use PHPUnit\Framework\TestCase;
@@ -25,6 +26,7 @@ class SerializerTest extends TestCase
      */
     public function testSerializer()
     {
+        var_dump(json_decode('5'));
         $innerArray = $this->createArray();
         $innerAssociativeArray = $this->createAssociativeArray();
         $innerStdClass = $this->createStdClass();
@@ -140,5 +142,30 @@ class SerializerTest extends TestCase
         $entity1->setEntity($entity1);
         $this->expectException(get_class(new \RuntimeException()));
         Serializer::serialize($entity1);
+    }
+
+    public function testDeserialize()
+    {
+        $object = new \stdClass();
+        $object->balh = 'dfds';
+        $object->arr = array(null, false, true, 0, 1, -1.1, array('blah', null, '234'));
+        $jsonDeserializer = new JsonDeserializer();
+        $json = json_encode($object);
+        $result = $jsonDeserializer->startDeserializeJson($json);
+        $this->assertEquals($json, Serializer::serialize($result));
+        var_dump($json);
+        var_dump(json_encode($result));
+    }
+
+    public function testDeserializeSpeed()
+    {
+        $object = new \stdClass();
+        $object->balh = 'dfds';
+        $object->arr = array(null, false, true, 0, 1, -1.1, array('blah', null, '234'));
+        $jsonDeserializer = new JsonDeserializer();
+        for ($i = 0; $i < 1000000; $i++) {
+            $jsonDeserializer->startDeserializeJson(json_encode($object));
+//            json_decode(json_encode($object));
+        }
     }
 }

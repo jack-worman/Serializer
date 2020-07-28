@@ -46,7 +46,7 @@ class Serializer
     {
         switch ($encodingType) {
             case self::ENCODING_TYPE_JSON:
-                return JsonDeserializer::deserializePayload($payload, $type);
+                return JsonDeserializer::deserializePayload(preg_replace('/\s+/', '', $payload), $type);
             default:
                 throw new \InvalidArgumentException('Only JSON encoding is supported.');
         }
