@@ -112,7 +112,7 @@ class Serializer
      * @param \ReflectionProperty $reflectionProperty
      * @return string
      */
-    private static function getSerializedName(\ReflectionProperty $reflectionProperty)
+    protected static function getSerializedName(\ReflectionProperty $reflectionProperty)
     {
         try {
             /** @var SerializedName $serializedNameAnnotation */
@@ -120,7 +120,7 @@ class Serializer
                 $reflectionProperty,
                 SerializedName::CLASS_NAME
             );
-            return $serializedNameAnnotation->getName();
+            return $serializedNameAnnotation->getValue();
         } catch (\Exception $e) {
             return $reflectionProperty->getName();
         }
@@ -131,13 +131,13 @@ class Serializer
      * @return string
      * @throws AnnotationReaderException
      */
-    private static function getType(\ReflectionProperty $reflectionProperty)
+    protected static function getType(\ReflectionProperty $reflectionProperty)
     {
         /** @var Type $typeAnnotation */
         $typeAnnotation = AnnotationReader::getPropertyAnnotation(
             $reflectionProperty,
             Type::CLASS_NAME
         );
-        return $typeAnnotation->getType();
+        return $typeAnnotation->getValue();
     }
 }

@@ -16,12 +16,4 @@ use JWorman\AnnotationReader\AbstractAnnotation;
 class SerializedName extends AbstractAnnotation
 {
     const CLASS_NAME = __CLASS__;
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->value;
-    }
 }

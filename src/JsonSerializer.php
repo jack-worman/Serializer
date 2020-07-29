@@ -103,8 +103,8 @@ final class JsonSerializer extends Serializer
                     $reflectionProperty,
                     SerializedName::CLASS_NAME
                 );
-                $key = $serializedNameAnnotation->getName();
-            } catch (AnnotationReaderException $e) {
+                $key = $serializedNameAnnotation->getValue();
+            } catch (\Exception $e) {
                 $key = $reflectionProperty->getName();
             }
             $properties[] = json_encode($key) . ':'

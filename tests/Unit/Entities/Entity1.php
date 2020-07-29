@@ -90,7 +90,7 @@ class Entity1
     /**
      * @var Entity1|null
      * @Serializer\SerializedName("entity")
-     * @Serializer\Type("JWorman\Serializer\Tests\Unit\Entities\Entity1")
+     * @Serializer\Type("JWorman\\Serializer\\Tests\\Unit\\Entities\\Entity1")
      */
     private $entity;
 
