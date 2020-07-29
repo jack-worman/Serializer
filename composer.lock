@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4334ccdfbcc5db9b52b20546d57b3dea",
+    "content-hash": "eaf2e7b37c3a401ca44ab6e1c48662ce",
     "packages": [
         {
             "name": "jworman/annotation-reader",
