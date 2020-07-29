@@ -13,7 +13,7 @@
     },
     "require": {
         "ext-json": "*",
-        "jworman/annotation-reader": "1.2.1"
+        "jworman/annotation-reader": "1.2.2"
     },
     "require-dev": {
         "phpunit/phpunit": "^7.5",
