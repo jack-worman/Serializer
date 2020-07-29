@@ -7,8 +7,6 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\AnnotationReader\AnnotationReader;
-use JWorman\AnnotationReader\Exceptions\AnnotationReaderException;
 use JWorman\AnnotationReader\PropertyAnnotationFactory;
 use JWorman\Serializer\Annotations\SerializedName;
 use JWorman\Serializer\Annotations\Type;
@@ -113,38 +111,5 @@ class Serializer
             }
         }
         return $object;
-    }
-
-    /**
-     * @param \ReflectionProperty $reflectionProperty
-     * @return string
-     */
-    protected static function getSerializedName(\ReflectionProperty $reflectionProperty)
-    {
-        try {
-            /** @var SerializedName $serializedNameAnnotation */
-            $serializedNameAnnotation = AnnotationReader::getPropertyAnnotation(
-                $reflectionProperty,
-                SerializedName::CLASS_NAME
-            );
-            return $serializedNameAnnotation->getValue();
-        } catch (\Exception $e) {
-            return $reflectionProperty->getName();
-        }
-    }
-
-    /**
-     * @param \ReflectionProperty $reflectionProperty
-     * @return string
-     * @throws AnnotationReaderException
-     */
-    protected static function getType(\ReflectionProperty $reflectionProperty)
-    {
-        /** @var Type $typeAnnotation */
-        $typeAnnotation = AnnotationReader::getPropertyAnnotation(
-            $reflectionProperty,
-            Type::CLASS_NAME
-        );
-        return $typeAnnotation->getValue();
     }
 }

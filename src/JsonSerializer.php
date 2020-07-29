@@ -7,8 +7,8 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\AnnotationReader\AnnotationReader;
 use JWorman\AnnotationReader\Exceptions\AnnotationReaderException;
+use JWorman\AnnotationReader\PropertyAnnotationFactory;
 use JWorman\Serializer\Annotations\SerializedName;
 
 /**
@@ -85,6 +85,7 @@ final class JsonSerializer extends Serializer
      * @param object $entity
      * @param int $recursionLimit
      * @return string
+     * @throws AnnotationReaderException
      */
     private static function serializeEntity($entity, $recursionLimit)
     {
@@ -94,20 +95,17 @@ final class JsonSerializer extends Serializer
             throw new \LogicException($e->getMessage(), 0, $e);
         }
         $properties = array();
+        $annotationFactory = new PropertyAnnotationFactory($reflectionClass);
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             $reflectionProperty->setAccessible(true);
-            // TODO: I am not sure about this try/catch.
             try {
-                /** @var SerializedName $serializedNameAnnotation */
-                $serializedNameAnnotation = AnnotationReader::getPropertyAnnotation(
-                    $reflectionProperty,
-                    SerializedName::CLASS_NAME
-                );
-                $key = $serializedNameAnnotation->getValue();
+                $serializedName = $annotationFactory
+                    ->getAnnotation($reflectionProperty->getName(), SerializedName::CLASS_NAME)
+                    ->getValue();
             } catch (\Exception $e) {
-                $key = $reflectionProperty->getName();
+                throw new \InvalidArgumentException('Must have SerializedName annotation.');
             }
-            $properties[] = json_encode($key) . ':'
+            $properties[] = json_encode($serializedName) . ':'
                 . self::serializeValue($reflectionProperty->getValue($entity), $recursionLimit);
         }
         return '{' . implode(',', $properties) . '}';
