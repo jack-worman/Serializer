@@ -7,7 +7,7 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\AnnotationReader\PropertyAnnotationFactory;
+use JWorman\AnnotationReader\AnnotationReader;
 use JWorman\Serializer\Annotations\SerializedName;
 use JWorman\Serializer\Annotations\Type;
 
@@ -62,7 +62,6 @@ class Serializer
      * @param mixed $value
      * @param string $type
      * @return mixed
-     * @throws \Exception
      */
     public static function convertToType($value, $type)
     {
@@ -93,14 +92,14 @@ class Serializer
         } catch (\ReflectionException $e) {
             throw new \RuntimeException("$type is unsupported.", 0, $e);
         }
-        $annotationFactory = new PropertyAnnotationFactory($reflectionClass);
+        $annotationReader = new AnnotationReader();
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             try {
-                $type = $annotationFactory
-                    ->getAnnotation($reflectionProperty->getName(), Type::CLASS_NAME)
+                $type = $annotationReader
+                    ->getPropertyAnnotation($reflectionProperty, Type::CLASS_NAME)
                     ->getValue();
-                $serializedName = $annotationFactory
-                    ->getAnnotation($reflectionProperty->getName(), SerializedName::CLASS_NAME)
+                $serializedName = $annotationReader
+                    ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (\Exception $e) {
                 throw new \Exception('Type and SerializedName annotations must be defined.', 0, $e);

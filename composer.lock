@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eaf2e7b37c3a401ca44ab6e1c48662ce",
+    "content-hash": "15032e4ab70a708b3749c15a6565ccb8",
     "packages": [
         {
             "name": "jworman/annotation-reader",
-            "version": "1.2.2",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hc-jworman/AnnotationReader.git",
-                "reference": "e64cbd0452bb15031f5ece11997010bb0b49e656"
+                "reference": "a03a9c14ca243e2b63935849c1ac487319617a1c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hc-jworman/AnnotationReader/zipball/e64cbd0452bb15031f5ece11997010bb0b49e656",
-                "reference": "e64cbd0452bb15031f5ece11997010bb0b49e656",
+                "url": "https://api.github.com/repos/hc-jworman/AnnotationReader/zipball/a03a9c14ca243e2b63935849c1ac487319617a1c",
+                "reference": "a03a9c14ca243e2b63935849c1ac487319617a1c",
                 "shasum": ""
             },
             "require": {
@@ -37,7 +37,7 @@
                 "MIT"
             ],
             "description": "Allows the parsing of annotations within doc comments.",
-            "time": "2020-07-29T17:28:55+00:00"
+            "time": "2020-07-30T04:57:40+00:00"
         }
     ],
     "packages-dev": [
