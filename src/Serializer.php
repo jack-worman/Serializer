@@ -8,6 +8,7 @@
 namespace JWorman\Serializer;
 
 use JWorman\AnnotationReader\AnnotationReader;
+use JWorman\AnnotationReader\Exceptions\PropertyAnnotationNotFound;
 use JWorman\Serializer\Annotations\SerializedName;
 use JWorman\Serializer\Annotations\Type;
 
@@ -101,7 +102,7 @@ class Serializer
                 $serializedName = $annotationReader
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
-            } catch (\Exception $e) {
+            } catch (PropertyAnnotationNotFound $e) {
                 throw new \Exception('Type and SerializedName annotations must be defined.', 0, $e);
             }
             if (isset($value[$serializedName])) {

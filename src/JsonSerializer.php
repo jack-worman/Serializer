@@ -50,7 +50,7 @@ final class JsonSerializer extends Serializer
     }
 
     /**
-     * @param array $array
+     * @param array<mixed> $array
      * @param int $recursionLimit
      * @return string
      */
@@ -110,7 +110,7 @@ final class JsonSerializer extends Serializer
     }
 
     /**
-     * @param array $array
+     * @param array<string|int, mixed> $array
      * @return bool
      */
     private static function isAssociativeArray(array $array)
