@@ -20,6 +20,8 @@ class Serializer
 {
     const FORMAT_JSON = 'encoding-type-json';
 
+    private static $annotationReader = null;
+
     /**
      * @param mixed $payload
      * @param string $encodingType
@@ -93,13 +95,15 @@ class Serializer
         } catch (\ReflectionException $e) {
             throw new \RuntimeException("$type is unsupported.", 0, $e);
         }
-        $annotationReader = new AnnotationReader();
+        if (self::$annotationReader === null) {
+            self::$annotationReader = new AnnotationReader();
+        }
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             try {
-                $type = $annotationReader
+                $type = self::$annotationReader
                     ->getPropertyAnnotation($reflectionProperty, Type::CLASS_NAME)
                     ->getValue();
-                $serializedName = $annotationReader
+                $serializedName = self::$annotationReader
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (PropertyAnnotationNotFound $e) {

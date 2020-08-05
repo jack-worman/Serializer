@@ -150,13 +150,13 @@ class SerializerTest extends TestCase
         $this->assertEquals($json, Serializer::serialize($entity1));
     }
 
-//    public function testDeserializeSpeed()
-//    {
-//        $json = include './__snapshots__/SerializerTest__testSerializer__1.php';
-//        for ($i = 0; $i < 10000; $i++) {
-//            $entity1 = Serializer::deserialize($json, Entity1::CLASS_NAME);
-//        }
-//        $this->assertEquals(Entity1::CLASS_NAME, get_class($entity1));
-//        $this->assertEquals($json, Serializer::serialize($entity1));
-//    }
+    public function testDeserializeSpeed()
+    {
+        $json = include __DIR__ . '/__snapshots__/SerializerTest__testSerializer__1.php';
+        for ($i = 0; $i < 10000; $i++) {
+            $entity1 = Serializer::deserialize($json, Entity1::CLASS_NAME);
+        }
+        $this->assertEquals(Entity1::CLASS_NAME, get_class($entity1));
+        $this->assertEquals($json, Serializer::serialize($entity1));
+    }
 }
