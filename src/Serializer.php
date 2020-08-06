@@ -20,6 +20,9 @@ class Serializer
 {
     const FORMAT_JSON = 'encoding-type-json';
 
+    /**
+     * @var AnnotationReader|null
+     */
     private static $annotationReader = null;
 
     /**
@@ -51,8 +54,8 @@ class Serializer
     {
         switch ($format) {
             case self::FORMAT_JSON:
-                $decodedJson = json_decode($json);
-                if (json_last_error() !== JSON_ERROR_NONE) {
+                $decodedJson = \json_decode($json);
+                if (\json_last_error() !== JSON_ERROR_NONE) {
                     throw new \InvalidArgumentException('Invalid JSON given.');
                 }
                 return self::convertToType($decodedJson, $type);
@@ -71,22 +74,25 @@ class Serializer
         // Casting to primitive:
         switch ($type) {
             case 'bool':
+                return (bool)$value;
             case 'int':
+                return (int)$value;
             case 'float':
+                return (float)$value;
             case 'string':
+                return (string)$value;
             case 'array':
+                return (array)$value;
             case 'object':
+                return (object)$value;
             case 'null':
-                if (!settype($value, $type)) {
-                    throw new \InvalidArgumentException("Could not cast to a $type.");
-                }
-                return $value;
+                return null;
         }
         // Casting to entity:
         $value = (array)$value;
 
-        $object = unserialize(sprintf('O:%d:"%s":0:{}', strlen($type), $type));
-        if (get_class($object) === '__PHP_Incomplete_Class') {
+        $object = \unserialize(\sprintf('O:%d:"%s":0:{}', \strlen($type), $type));
+        if (\get_class($object) === '__PHP_Incomplete_Class') {
             throw new \InvalidArgumentException('Invalid type given.');
         }
 
@@ -95,9 +101,7 @@ class Serializer
         } catch (\ReflectionException $e) {
             throw new \RuntimeException("$type is unsupported.", 0, $e);
         }
-        if (self::$annotationReader === null) {
-            self::$annotationReader = new AnnotationReader();
-        }
+        self::$annotationReader = self::$annotationReader ?: new AnnotationReader();
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
             try {
                 $type = self::$annotationReader
