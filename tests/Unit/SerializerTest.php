@@ -139,7 +139,7 @@ class SerializerTest extends TestCase
     {
         $entity1 = new Entity1();
         $entity1->setEntity($entity1);
-        $this->expectException(get_class(new \RuntimeException()));
+        $this->expectException(\get_class(new \RuntimeException()));
         Serializer::serialize($entity1);
     }
 
@@ -161,14 +161,14 @@ class SerializerTest extends TestCase
 
         $timer = new Timer();
         $duration = 0;
-        for ($i = 0; $i < 100000; $i++) {
+        for ($i = 0; $i < 500000; $i++) {
             $timer->start();
             $entity1 = Serializer::deserialize($json, Entity1::CLASS_NAME);
             $duration += $timer->stop();
         }
-        var_dump($duration / 100000);
+        \var_dump($duration / 500000);
 
-        $this->assertEquals(Entity1::CLASS_NAME, get_class($entity1));
+        $this->assertEquals(Entity1::CLASS_NAME, \get_class($entity1));
         $this->assertEquals($json, Serializer::serialize($entity1));
     }
 }

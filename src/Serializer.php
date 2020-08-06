@@ -55,7 +55,7 @@ class Serializer
         switch ($format) {
             case self::FORMAT_JSON:
                 $decodedJson = \json_decode($json);
-                if (\json_last_error() !== JSON_ERROR_NONE) {
+                if (\json_last_error() !== \JSON_ERROR_NONE) {
                     throw new \InvalidArgumentException('Invalid JSON given.');
                 }
                 return self::convertToType($decodedJson, $type);
