@@ -35,7 +35,11 @@ final class JsonSerializer extends Serializer
             case 'string':
                 return json_encode($value);
             case 'array':
-                return self::serializeArray($value, $recursionLimit - 1);
+                if (self::isAssociativeArray($value)) {
+                    return self::serializeStdClass((object)$value, $recursionLimit - 1);
+                } else {
+                    return self::serializeArray($value, $recursionLimit - 1);
+                }
             case 'object':
                 if (get_class($value) === 'stdClass') {
                     return self::serializeStdClass($value, $recursionLimit - 1);
@@ -56,9 +60,6 @@ final class JsonSerializer extends Serializer
      */
     private static function serializeArray(array $array, $recursionLimit)
     {
-        if (self::isAssociativeArray($array)) {
-            return self::serializeStdClass((object)$array, $recursionLimit);
-        }
         $values = array();
         foreach ($array as $value) {
             $values[] = self::serializeValue($value, $recursionLimit);

@@ -71,7 +71,6 @@ class Serializer
      */
     public static function convertToType($value, $type)
     {
-        // Casting to primitive:
         switch ($type) {
             case 'bool':
                 return (bool)$value;
@@ -111,7 +110,7 @@ class Serializer
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (PropertyAnnotationNotFound $e) {
-                throw new \Exception('Type and SerializedName annotations must be defined.', 0, $e);
+                throw new \InvalidArgumentException('Type and SerializedName annotations must be defined.', 0, $e);
             }
             if (isset($value[$serializedName])) {
                 $reflectionProperty->setAccessible(true);

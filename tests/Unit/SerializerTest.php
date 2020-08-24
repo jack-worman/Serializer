@@ -155,7 +155,7 @@ class SerializerTest extends TestCase
     /**
      * Averages 199us per deserialization for 1M tests.
      */
-    public function testDeserializeSpeed()
+    public function _testDeserializeSpeed()
     {
         $json = include __DIR__ . '/__snapshots__/SerializerTest__testSerializer__1.php';
 
