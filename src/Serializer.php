@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Serializer.php
- * @author Jack Worman
- */
-
 namespace JWorman\Serializer;
 
 use JWorman\AnnotationReader\AnnotationReader;
@@ -12,31 +7,25 @@ use JWorman\AnnotationReader\Exceptions\PropertyAnnotationNotFound;
 use JWorman\Serializer\Annotations\SerializedName;
 use JWorman\Serializer\Annotations\Type;
 
-/**
- * Class Serializer
- * @package JWorman\Serializer
- */
 class Serializer
 {
-    const FORMAT_JSON = 'encoding-type-json';
+    const FORMAT_JSON = 'format-json';
 
-    /**
-     * @var AnnotationReader|null
-     */
-    private static $annotationReader = null;
+    /** @var AnnotationReader|null */
+    private static $annotationReader;
 
     /**
      * @param mixed $payload
-     * @param string $encodingType
+     * @param string $format
      * @param int $recursionLimit
      * @return string
      */
-    public static function serialize($payload, $encodingType = self::FORMAT_JSON, $recursionLimit = 512)
+    final public static function serialize($payload, $format = self::FORMAT_JSON, $recursionLimit = 512)
     {
         if ($recursionLimit < 0) {
             throw new \InvalidArgumentException('The recursion limit cannot be negative.');
         }
-        switch ($encodingType) {
+        switch ($format) {
             case self::FORMAT_JSON:
                 return JsonSerializer::serializeValue($payload, $recursionLimit);
             default:
@@ -45,22 +34,18 @@ class Serializer
     }
 
     /**
-     * @param mixed $json
+     * @param string $json
      * @param string $type
      * @param string $format
      * @return mixed
      */
-    public static function deserialize($json, $type, $format = self::FORMAT_JSON)
+    final public static function deserialize($json, $type, $format = self::FORMAT_JSON)
     {
         switch ($format) {
             case self::FORMAT_JSON:
-                $decodedJson = \json_decode($json);
-                if (\json_last_error() !== \JSON_ERROR_NONE) {
-                    throw new \InvalidArgumentException('Invalid JSON given.');
-                }
-                return self::convertToType($decodedJson, $type);
+                return JsonSerializer::deserializeValue($json, $type);
             default:
-                throw new \InvalidArgumentException('Only JSON encoding is supported.');
+                throw new \InvalidArgumentException("Invalid format given: $format");
         }
     }
 
@@ -69,7 +54,7 @@ class Serializer
      * @param string $type
      * @return mixed
      */
-    public static function convertToType($value, $type)
+    final public static function convertToType($value, $type)
     {
         switch ($type) {
             case 'bool':
@@ -86,7 +71,18 @@ class Serializer
                 return (object)$value;
             case 'null':
                 return null;
+            default:
+                return self::convertToEntity($value, $type);
         }
+    }
+
+    /**
+     * @param mixed $value
+     * @param string $type
+     * @return object
+     */
+    final private static function convertToEntity($value, $type)
+    {
         // Casting to entity:
         $value = (array)$value;
 
@@ -98,15 +94,16 @@ class Serializer
         try {
             $reflectionClass = new \ReflectionClass($object);
         } catch (\ReflectionException $e) {
-            throw new \RuntimeException("$type is unsupported.", 0, $e);
+            throw new \InvalidArgumentException("$type is unsupported.", 0, $e);
         }
-        self::$annotationReader = self::$annotationReader ?: new AnnotationReader();
+        $annotationReader = self::getAnnotationReader();
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
+            $annotationReader->getPropertyAnnotations($reflectionProperty);
             try {
-                $type = self::$annotationReader
+                $type = $annotationReader
                     ->getPropertyAnnotation($reflectionProperty, Type::CLASS_NAME)
                     ->getValue();
-                $serializedName = self::$annotationReader
+                $serializedName = $annotationReader
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (PropertyAnnotationNotFound $e) {
@@ -118,5 +115,17 @@ class Serializer
             }
         }
         return $object;
+    }
+
+    /**
+     * @return AnnotationReader
+     */
+    protected static function getAnnotationReader()
+    {
+        if (isset(self::$annotationReader)) {
+            return self::$annotationReader;
+        }
+        self::$annotationReader = new AnnotationReader();
+        return self::$annotationReader;
     }
 }

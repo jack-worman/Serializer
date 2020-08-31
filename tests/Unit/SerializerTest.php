@@ -1,10 +1,5 @@
 <?php
 
-/**
- * SerializerTest.php
- * @author Jack Worman
- */
-
 namespace JWorman\Serializer\Tests\Unit;
 
 use JWorman\Serializer\Serializer;
@@ -13,10 +8,6 @@ use PHPUnit\Framework\TestCase;
 use SebastianBergmann\Timer\Timer;
 use Spatie\Snapshots\MatchesSnapshots;
 
-/**
- * Class SerializerTest
- * @package JWorman\Serializer\Tests\Unit
- */
 class SerializerTest extends TestCase
 {
     use MatchesSnapshots;
@@ -143,6 +134,9 @@ class SerializerTest extends TestCase
         Serializer::serialize($entity1);
     }
 
+    /**
+     * @covers \JWorman\Serializer\Serializer::deserialize
+     */
     public function testDeserialize()
     {
         $json = include __DIR__ . '/__snapshots__/SerializerTest__testSerializer__1.php';
@@ -170,5 +164,39 @@ class SerializerTest extends TestCase
 
         $this->assertEquals(Entity1::CLASS_NAME, \get_class($entity1));
         $this->assertEquals($json, Serializer::serialize($entity1));
+    }
+
+    /**
+     * Averages 400us.
+     */
+    public function _testSerializeSpeed()
+    {
+        $innerArray = $this->createArray();
+        $innerAssociativeArray = $this->createAssociativeArray();
+        $innerStdClass = $this->createStdClass();
+        $innerEntity = new Entity1();
+
+        $middleArray = $this->createArray($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
+        $middleAssociativeArray = $this->createAssociativeArray(
+            $innerArray,
+            $innerAssociativeArray,
+            $innerStdClass,
+            $innerEntity
+        );
+        $middleStdClass = $this->createStdClass($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
+        $middleEntity = new Entity1($innerArray, $innerAssociativeArray, $innerStdClass, $innerEntity);
+
+        $entity1 = new Entity1($middleArray, $middleAssociativeArray, $middleStdClass, $middleEntity);
+
+        $timer = new Timer();
+        $duration = 0;
+        for ($i = 0; $i < 1000; $i++) {
+            $timer->start();
+            $serializedEntity = Serializer::serialize($entity1, Serializer::FORMAT_JSON, 3);
+            $duration += $timer->stop();
+        }
+        \var_dump($duration / 1000);
+
+        $this->assertMatchesSnapshot($serializedEntity);
     }
 }
