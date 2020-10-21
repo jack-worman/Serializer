@@ -107,7 +107,7 @@ class Serializer
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (PropertyAnnotationNotFound $e) {
-                throw new \InvalidArgumentException('Type and SerializedName annotations must be defined.', 0, $e);
+                continue;
             }
             if (isset($value[$serializedName])) {
                 $reflectionProperty->setAccessible(true);

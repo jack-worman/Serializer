@@ -17,6 +17,9 @@ class Entity1
 {
     const CLASS_NAME = __CLASS__;
 
+    /** @var string */
+    private $propertyWithNoAnnotations;
+
     /**
      * @var null
      * @Serializer\SerializedName("null")

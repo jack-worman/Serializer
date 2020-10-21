@@ -125,7 +125,7 @@ final class JsonSerializer extends Serializer
                     ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
                     ->getValue();
             } catch (PropertyAnnotationNotFound $e) {
-                throw new \InvalidArgumentException('Must have SerializedName annotation.', 0, $e);
+                continue;
             }
             $properties[] = \json_encode($serializedName) . ':'
                 . self::serializeValue($reflectionProperty->getValue($entity), $recursionLimit);
