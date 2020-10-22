@@ -10,6 +10,7 @@ use JWorman\Serializer\Annotations\Type;
 class Serializer
 {
     const FORMAT_JSON = 'format-json';
+    const ARRAY_TYPE_EXPRESSION_MATCHER = '/^(?:array<)(.*)(?:>)$/';
 
     /** @var AnnotationReader|null */
     private static $annotationReader;
@@ -72,8 +73,36 @@ class Serializer
             case 'null':
                 return null;
             default:
-                return self::convertToEntity($value, $type);
+                return self::handleEntityTypeConversions($value, $type);
         }
+    }
+
+    /**
+     * @param mixed $value
+     * @param string $type
+     * @return array|object
+     */
+    final private static function handleEntityTypeConversions($value, $type)
+    {
+        preg_match(self::ARRAY_TYPE_EXPRESSION_MATCHER, $type, $arrayTypeMatches);
+        if (!empty($arrayTypeMatches)) {
+            $entityType = $arrayTypeMatches[1];
+            return self::convertToArrayEntity((array)$value, $entityType);
+        }
+        return self::convertToEntity($value, $type);
+    }
+
+    /**
+     * @param array $arrayValue
+     * @param string $entityType
+     * @return array
+     */
+    final private static function convertToArrayEntity($arrayValue, $entityType)
+    {
+        foreach ($arrayValue as &$item) {
+            $item = self::convertToEntity($item, $entityType);
+        }
+        return $arrayValue;
     }
 
     /**
