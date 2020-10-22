@@ -1,10 +1,5 @@
 <?php
 
-/**
- * ArrayTypeSerializerTest
- * @copyright HealthCall, LLC
- */
-
 namespace JWorman\Serializer\Tests\Unit;
 
 use JWorman\Serializer\Serializer;
@@ -24,6 +19,6 @@ class ArrayTypeSerializerTest extends TestCase
             $serializedEntity
         );
         $deserializedEntity = Serializer::deserialize($serializedEntity, Entity3::CLASS_NAME);
-        static::assertEquals($deserializedEntity, $entity3);
+        static::assertEquals($entity3, $deserializedEntity);
     }
 }

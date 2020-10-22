@@ -10,6 +10,7 @@ use JWorman\Serializer\Annotations\Type;
 class Serializer
 {
     const FORMAT_JSON = 'format-json';
+    const ARRAY_TYPE_EXPRESSION_MATCHER = '/^(?:array<)(.*)(?:>)$/';
 
     /** @var AnnotationReader|null */
     private static $annotationReader;
@@ -72,23 +73,36 @@ class Serializer
             case 'null':
                 return null;
             default:
-                return self::handleEntityTypeConversions($type, $value);
+                return self::handleEntityTypeConversions($value, $type);
         }
     }
 
-    final private static function handleEntityTypeConversions($type, $value)
+    /**
+     * @param mixed $value
+     * @param string $type
+     * @return array|object
+     */
+    final private static function handleEntityTypeConversions($value, $type)
     {
-        $arrayTypeExpression = '/^(?:array<)(.*)(?:>)$/';
-        preg_match($arrayTypeExpression, $type, $arrayTypeMatches);
+        preg_match(self::ARRAY_TYPE_EXPRESSION_MATCHER, $type, $arrayTypeMatches);
         if (!empty($arrayTypeMatches)) {
             $entityType = $arrayTypeMatches[1];
-            $value = (array)$value;
-            foreach ($value as &$valueItem) {
-                $valueItem = self::convertToEntity($valueItem, $entityType);
-            }
-            return $value;
+            return self::convertToArrayEntity((array)$value, $entityType);
         }
         return self::convertToEntity($value, $type);
+    }
+
+    /**
+     * @param array $arrayValue
+     * @param string $entityType
+     * @return array
+     */
+    final private static function convertToArrayEntity($arrayValue, $entityType)
+    {
+        foreach ($arrayValue as &$item) {
+            $item = self::convertToEntity($item, $entityType);
+        }
+        return $arrayValue;
     }
 
     /**

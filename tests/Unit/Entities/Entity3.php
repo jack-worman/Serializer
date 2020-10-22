@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Entity3
- * @copyright HealthCall, LLC
- */
-
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
 use JWorman\Serializer\Annotations as Serializer;
