@@ -72,8 +72,23 @@ class Serializer
             case 'null':
                 return null;
             default:
-                return self::convertToEntity($value, $type);
+                return self::handleEntityTypeConversions($type, $value);
         }
+    }
+
+    final private static function handleEntityTypeConversions($type, $value)
+    {
+        $arrayTypeExpression = '/^(?:array<)(.*)(?:>)$/';
+        preg_match($arrayTypeExpression, $type, $arrayTypeMatches);
+        if (!empty($arrayTypeMatches)) {
+            $entityType = $arrayTypeMatches[1];
+            $value = (array)$value;
+            foreach ($value as &$valueItem) {
+                $valueItem = self::convertToEntity($valueItem, $entityType);
+            }
+            return $value;
+        }
+        return self::convertToEntity($value, $type);
     }
 
     /**
