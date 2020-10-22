@@ -131,7 +131,7 @@ class SerializerTest extends TestCase
         $entity1 = new Entity1();
         $entity1->setEntity($entity1);
         $this->expectException(\get_class(new \RuntimeException()));
-        Serializer::serialize($entity1);
+        Serializer::serialize($entity1, Serializer::FORMAT_JSON, 64);
     }
 
     /**

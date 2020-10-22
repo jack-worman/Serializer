@@ -1,18 +1,9 @@
 <?php
 
-/**
- * Entity1.php
- * @author Jack Worman
- */
-
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
 use JWorman\Serializer\Annotations as Serializer;
 
-/**
- * Class Entity1
- * @package JWorman\Serializer\Tests\Unit\Entities
- */
 class Entity1
 {
     const CLASS_NAME = __CLASS__;
