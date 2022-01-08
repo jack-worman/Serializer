@@ -2,146 +2,102 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\AnnotationReader\Exceptions\PropertyAnnotationNotFound;
-use JWorman\Serializer\Annotations\SerializedName;
+use JWorman\Serializer\Attribute\SerializedName;
 
 final class JsonSerializer extends Serializer
 {
-    const GET_TYPE_NULL = 'NULL';
-    const GET_TYPE_BOOLEAN = 'boolean';
-    const GET_TYPE_INTEGER = 'integer';
-    const GET_TYPE_DOUBLE = 'double';
-    const GET_TYPE_STRING = 'string';
-    const GET_TYPE_ARRAY = 'array';
-    const GET_TYPE_OBJECT = 'object';
-
-    /**
-     * @param mixed $value
-     * @param int $recursionLimit
-     * @return string
-     */
-    protected static function serializeValue($value, $recursionLimit)
+    protected static function serializeValue(mixed $value, int $recursionLimit): string
     {
-        if ($recursionLimit === -1) {
+        if (-1 === $recursionLimit) {
             throw new \RuntimeException('Recursion limit exceeded.');
         }
-        switch (\gettype($value)) {
-            case self::GET_TYPE_NULL:
-            case self::GET_TYPE_BOOLEAN:
-            case self::GET_TYPE_INTEGER:
-            case self::GET_TYPE_DOUBLE:
-            case self::GET_TYPE_STRING:
-                return self::serializePrimitive($value);
-            case self::GET_TYPE_ARRAY:
-                if (self::isAssociativeArray($value)) {
-                    return self::serializeStdClass((object)$value, $recursionLimit - 1);
-                } else {
-                    return self::serializeArray($value, $recursionLimit - 1);
-                }
-            case self::GET_TYPE_OBJECT:
-                if (\get_class($value) === 'stdClass') {
-                    return self::serializeStdClass($value, $recursionLimit - 1);
-                } else {
-                    return self::serializeEntity($value, $recursionLimit - 1);
-                }
-            default:
-                throw new \InvalidArgumentException('Unsupported type given: "' . \gettype($value) . '"');
+        if (null === $value || is_scalar($value)) {
+            return self::serializeScalar($value);
+        } elseif (\is_array($value)) {
+            if (array_is_list($value)) {
+                return self::serializeList($value, $recursionLimit - 1);
+            } else {
+                return self::serializeStdClass((object) $value, $recursionLimit - 1);
+            }
+        } elseif (\is_object($value)) {
+            if (\stdClass::class === $value::class) {
+                return self::serializeStdClass($value, $recursionLimit - 1);
+            } else {
+                return self::serializeEntity($value, $recursionLimit - 1);
+            }
+        } else {
+            throw new \InvalidArgumentException('Unsupported type given: "'.get_debug_type($value).'"');
         }
     }
 
-    /**
-     * @param string $json
-     * @param string $type
-     * @return mixed
-     */
-    protected static function deserializeValue($json, $type)
+    protected static function deserializeValue(string $json, string $type): mixed
     {
-        $decodedJson = \json_decode($json);
-        if (\json_last_error() !== \JSON_ERROR_NONE) {
+        $decodedJson = json_decode($json);
+        if (\JSON_ERROR_NONE !== json_last_error()) {
             throw new \InvalidArgumentException('Invalid JSON given.');
         }
+
         return Serializer::convertToType($decodedJson, $type);
     }
 
-    /**
-     * @param null|bool|int|float|string $primitive
-     * @return string
-     */
-    private static function serializePrimitive($primitive)
+    private static function serializeScalar(null|bool|int|float|string $scalar): string
     {
-        $serializedPrimitive = \json_encode($primitive);
-        if ($serializedPrimitive === false) {
-            throw new \InvalidArgumentException('Could not encode into entity.');
+        $serializeScalar = json_encode($scalar, \JSON_THROW_ON_ERROR);
+        if (false === $serializeScalar) {
+            throw new \LogicException();
         }
-        return $serializedPrimitive;
+
+        return $serializeScalar;
     }
 
-    /**
-     * @param array<mixed> $array
-     * @param int $recursionLimit
-     * @return string
-     */
-    private static function serializeArray(array $array, $recursionLimit)
+    private static function serializeList(array $array, int $recursionLimit): string
     {
-        $values = array();
-        foreach ($array as $value) {
-            $values[] = self::serializeValue($value, $recursionLimit);
-        }
-        return '[' . \implode(',', $values) . ']';
+        $values = array_map(
+            fn (mixed $value) => self::serializeValue($value, $recursionLimit),
+            $array
+        );
+
+        return sprintf('[%s]', implode(',', $values));
     }
 
-    /**
-     * @param \stdClass $stdClass
-     * @param int $recursionLimit
-     * @return string
-     */
-    private static function serializeStdClass(\stdClass $stdClass, $recursionLimit)
+    private static function serializeStdClass(\stdClass $stdClass, int $recursionLimit): string
     {
-        $properties = array();
-        foreach ((array)$stdClass as $key => $value) {
-            $properties[] = \json_encode($key) . ':' . self::serializeValue($value, $recursionLimit);
+        $properties = [];
+        foreach ((array) $stdClass as $key => $value) {
+            $properties[] = sprintf(
+                '%s:%s',
+                json_encode($key, \JSON_THROW_ON_ERROR),
+                self::serializeValue($value, $recursionLimit)
+            );
         }
-        return '{' . \implode(',', $properties) . '}';
+
+        return sprintf('{%s}', implode(',', $properties));
     }
 
-    /**
-     * @param object $entity
-     * @param int $recursionLimit
-     * @return string
-     */
-    private static function serializeEntity($entity, $recursionLimit)
+    private static function serializeEntity(object $entity, int $recursionLimit): string
     {
-        try {
-            $reflectionClass = new \ReflectionClass($entity);
-        } catch (\ReflectionException $e) {
-            throw new \InvalidArgumentException($e->getMessage(), 0, $e);
-        }
-        $properties = array();
-        $annotationReader = self::getAnnotationReader();
+        $reflectionClass = new \ReflectionClass($entity);
+        $properties = [];
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $reflectionProperty->setAccessible(true);
-            try {
-                $serializedName = $annotationReader
-                    ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
-                    ->getValue();
-            } catch (PropertyAnnotationNotFound $e) {
+            $serializedNameAttributes = $reflectionProperty->getAttributes(SerializedName::class);
+            if ([] === $serializedNameAttributes) {
                 continue;
+            } elseif (1 === \count($serializedNameAttributes)) {
+                $serializedName = $serializedNameAttributes[0]->getArguments()[0];
+            } else {
+                throw new \RuntimeException();
             }
-            $properties[] = \json_encode($serializedName) . ':'
-                . self::serializeValue($reflectionProperty->getValue($entity), $recursionLimit);
-        }
-        return '{' . implode(',', $properties) . '}';
-    }
 
-    /**
-     * @param array<mixed> $array
-     * @return bool
-     */
-    private static function isAssociativeArray(array $array)
-    {
-        if (empty($array)) {
-            return false;
+            $value = $reflectionProperty->isInitialized($entity)
+                ? $reflectionProperty->getValue($entity)
+                : null;
+            $properties[] = sprintf(
+                '%s:%s',
+                json_encode($serializedName, \JSON_THROW_ON_ERROR),
+                self::serializeValue($value, $recursionLimit)
+            );
         }
-        return \array_keys($array) !== \range(0, \count($array) - 1);
+
+        return sprintf('{%s}', implode(',', $properties));
     }
 }

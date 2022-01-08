@@ -2,159 +2,100 @@
 
 namespace JWorman\Serializer;
 
-use JWorman\AnnotationReader\AnnotationReader;
-use JWorman\AnnotationReader\Exceptions\PropertyAnnotationNotFound;
-use JWorman\Serializer\Annotations\SerializedName;
-use JWorman\Serializer\Annotations\Type;
+use JWorman\Serializer\Attribute\SerializedName;
+use JWorman\Serializer\Attribute\Type;
 
 class Serializer
 {
-    const FORMAT_JSON = 'format-json';
-    const ARRAY_TYPE_EXPRESSION_MATCHER = '/^(?:array<)(.*)(?:>)$/';
+    final public const FORMAT_JSON = 'format-json';
+    final public const ARRAY_TYPE_EXPRESSION_MATCHER = '/^array<(.*)>$/';
 
-    /** @var AnnotationReader|null */
-    private static $annotationReader;
-
-    /**
-     * @param mixed $payload
-     * @param string $format
-     * @param int $recursionLimit
-     * @return string
-     */
-    final public static function serialize($payload, $format = self::FORMAT_JSON, $recursionLimit = 512)
+    final public static function serialize(mixed $payload, string $format = self::FORMAT_JSON, int $recursionLimit = 512): string
     {
         if ($recursionLimit < 0) {
             throw new \InvalidArgumentException('The recursion limit cannot be negative.');
         }
-        switch ($format) {
-            case self::FORMAT_JSON:
-                return JsonSerializer::serializeValue($payload, $recursionLimit);
-            default:
-                throw new \InvalidArgumentException('Only JSON encoding is supported.');
-        }
+
+        return match ($format) {
+            self::FORMAT_JSON => JsonSerializer::serializeValue($payload, $recursionLimit),
+            default => throw new \InvalidArgumentException('Only JSON encoding is supported.'),
+        };
     }
 
-    /**
-     * @param string $json
-     * @param string $type
-     * @param string $format
-     * @return mixed
-     */
-    final public static function deserialize($json, $type, $format = self::FORMAT_JSON)
+    final public static function deserialize(string $json, string $type, string $format = self::FORMAT_JSON): mixed
     {
-        switch ($format) {
-            case self::FORMAT_JSON:
-                return JsonSerializer::deserializeValue($json, $type);
-            default:
-                throw new \InvalidArgumentException("Invalid format given: $format");
-        }
+        return match ($format) {
+            self::FORMAT_JSON => JsonSerializer::deserializeValue($json, $type),
+            default => throw new \InvalidArgumentException("Invalid format given: $format"),
+        };
     }
 
-    /**
-     * @param mixed $value
-     * @param string $type
-     * @return mixed
-     */
-    final public static function convertToType($value, $type)
+    final public static function convertToType(mixed $value, string $type): string|int|bool|array|null|object|float
     {
-        switch ($type) {
-            case 'bool':
-                return (bool)$value;
-            case 'int':
-                return (int)$value;
-            case 'float':
-                return (float)$value;
-            case 'string':
-                return (string)$value;
-            case 'array':
-                return (array)$value;
-            case 'object':
-                return (object)$value;
-            case 'null':
-                return null;
-            default:
-                return self::handleEntityTypeConversions($value, $type);
-        }
+        return match ($type) {
+            'bool' => (bool) $value,
+            'int' => (int) $value,
+            'float' => (float) $value,
+            'string' => (string) $value,
+            'array' => (array) $value,
+            'object' => (object) $value,
+            'null' => null,
+            default => self::handleEntityTypeConversions($value, $type),
+        };
     }
 
-    /**
-     * @param mixed $value
-     * @param string $type
-     * @return array|object
-     */
-    final private static function handleEntityTypeConversions($value, $type)
+    private static function handleEntityTypeConversions(array|object $value, string $type): array|object
     {
         preg_match(self::ARRAY_TYPE_EXPRESSION_MATCHER, $type, $arrayTypeMatches);
         if (!empty($arrayTypeMatches)) {
             $entityType = $arrayTypeMatches[1];
-            return self::convertToArrayEntity((array)$value, $entityType);
+
+            return self::convertToArrayEntity((array) $value, $entityType);
         }
+
         return self::convertToEntity($value, $type);
     }
 
-    /**
-     * @param array $arrayValue
-     * @param string $entityType
-     * @return array
-     */
-    final private static function convertToArrayEntity($arrayValue, $entityType)
+    private static function convertToArrayEntity(array $arrayValue, string $entityType): array
     {
         foreach ($arrayValue as &$item) {
             $item = self::convertToEntity($item, $entityType);
         }
+
         return $arrayValue;
     }
 
-    /**
-     * @param mixed $value
-     * @param string $type
-     * @return object
-     */
-    final private static function convertToEntity($value, $type)
+    private static function convertToEntity(object $value, string $type): object
     {
         // Casting to entity:
-        $value = (array)$value;
+        $value = (array) $value;
 
-        $object = \unserialize(\sprintf('O:%d:"%s":0:{}', \strlen($type), $type));
-        if (\get_class($object) === '__PHP_Incomplete_Class') {
-            throw new \InvalidArgumentException('Invalid type given.');
-        }
+        $reflectionClass = new \ReflectionClass($type);
+        $object = $reflectionClass->newInstanceWithoutConstructor();
 
-        try {
-            $reflectionClass = new \ReflectionClass($object);
-        } catch (\ReflectionException $e) {
-            throw new \InvalidArgumentException("$type is unsupported.", 0, $e);
-        }
-        $annotationReader = self::getAnnotationReader();
         foreach ($reflectionClass->getProperties() as $reflectionProperty) {
-            $annotationReader->getPropertyAnnotations($reflectionProperty);
-            try {
-                $type = $annotationReader
-                    ->getPropertyAnnotation($reflectionProperty, Type::CLASS_NAME)
-                    ->getValue();
-                $serializedName = $annotationReader
-                    ->getPropertyAnnotation($reflectionProperty, SerializedName::CLASS_NAME)
-                    ->getValue();
-            } catch (PropertyAnnotationNotFound $e) {
+            $typeAttributes = $reflectionProperty->getAttributes(Type::class);
+            if (1 === \count($typeAttributes)) {
+                $type = $typeAttributes[0]->getArguments()[0];
+            } elseif ([] === $typeAttributes) {
                 continue;
+            } else {
+                throw new \RuntimeException('Property has multiple type attributes.');
             }
+            $serializedNameAttributes = $reflectionProperty->getAttributes(SerializedName::class);
+            if (1 === \count($serializedNameAttributes)) {
+                $serializedName = $serializedNameAttributes[0]->getArguments()[0];
+            } elseif ([] === $serializedNameAttributes) {
+                continue;
+            } else {
+                throw new \RuntimeException('Property has multiple type attributes.');
+            }
+
             if (isset($value[$serializedName])) {
-                $reflectionProperty->setAccessible(true);
                 $reflectionProperty->setValue($object, self::convertToType($value[$serializedName], $type));
             }
         }
-        return $object;
-    }
 
-    /**
-     * @return AnnotationReader
-     */
-    protected static function getAnnotationReader()
-    {
-        if (isset(self::$annotationReader)) {
-            return self::$annotationReader;
-        }
-        self::$annotationReader = new AnnotationReader();
-        return self::$annotationReader;
+        return $object;
     }
 }

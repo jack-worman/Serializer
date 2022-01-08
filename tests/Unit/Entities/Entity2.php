@@ -2,16 +2,12 @@
 
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
-use JWorman\Serializer\Annotations as Serializer;
+use JWorman\Serializer\Attribute\SerializedName;
+use JWorman\Serializer\Attribute\Type;
 
 class Entity2
 {
-    const CLASS_NAME = __CLASS__;
-
-    /**
-     * @var string
-     * @Serializer\SerializedName("string")
-     * @Serializer\Type("string")
-     */
-    private $string = 'fuzzbizz';
+    #[SerializedName('string')]
+    #[Type('string')]
+    private string $string = 'fuzzbizz';
 }
