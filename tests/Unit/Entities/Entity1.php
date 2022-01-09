@@ -2,119 +2,56 @@
 
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
-use JWorman\Serializer\Annotations as Serializer;
+use JWorman\Serializer\Attribute\SerializedName;
+use JWorman\Serializer\Attribute\Type;
 
 class Entity1
 {
-    const CLASS_NAME = __CLASS__;
+    final public const CLASS_NAME = self::class;
 
-    /** @var string */
-    private $propertyWithNoAnnotations;
+    private readonly mixed $propertyWithNoAnnotations;
 
-    /**
-     * @var null
-     * @Serializer\SerializedName("null")
-     * @Serializer\Type("null")
-     */
-    private $null = null;
+    #[SerializedName('null')]
+    #[Type('null')]
+    private mixed $null = null;
 
-    /**
-     * @var bool
-     * @Serializer\SerializedName("bool")
-     * @Serializer\Type("bool")
-     */
-    private $bool = false;
+    #[SerializedName('bool')]
+    #[Type('bool')]
+    private bool $bool = false;
 
-    /**
-     * @var int
-     * @Serializer\SerializedName("int")
-     * @Serializer\Type("int")
-     */
-    private $int = 42;
+    #[SerializedName('int')]
+    #[Type('int')]
+    private int $int = 42;
 
-    /**
-     * @var float
-     * @Serializer\SerializedName("float")
-     * @Serializer\Type("float")
-     */
-    private $float = 3.14;
+    #[SerializedName('float')]
+    #[Type('float')]
+    private float $float = 3.14;
 
-    /**
-     * @var string
-     * @Serializer\SerializedName("string")
-     * @Serializer\Type("string")
-     */
-    private $string = 'fizzbuzz';
+    #[SerializedName('string')]
+    #[Type('string')]
+    private string $string = 'fizzbuzz';
 
-    /**
-     * @var array
-     * @Serializer\SerializedName("empty_array")
-     * @Serializer\Type("array")
-     */
-    private $emptyArray = array();
+    #[SerializedName('empty_array')]
+    #[Type('array')]
+    private array $emptyArray = [];
 
-    /**
-     * @var array|null
-     * @Serializer\SerializedName("array")
-     * @Serializer\Type("array")
-     */
-    private $array;
+    #[SerializedName('empty_std_class')]
+    #[Type('object')]
+    private readonly \stdClass $emptyStdClass;
 
-    /**
-     * @var array|null
-     * @Serializer\SerializedName("associative_array")
-     * @Serializer\Type("array")
-     */
-    private $associativeArray;
-
-    /**
-     * @var \stdClass
-     * @Serializer\SerializedName("empty_std_class")
-     * @Serializer\Type("object")
-     */
-    private $emptyStdClass;
-
-    /**
-     * @var \stdClass|null
-     * @Serializer\SerializedName("std_class")
-     * @Serializer\Type("object")
-     */
-    private $stdClass;
-
-    /**
-     * @var Entity1|null
-     * @Serializer\SerializedName("entity")
-     * @Serializer\Type("JWorman\\Serializer\\Tests\\Unit\\Entities\\Entity1")
-     */
-    private $entity;
-
-    /**
-     * Entity1 constructor.
-     * @param array|null $array
-     * @param array|null $associativeArray
-     * @param \stdClass|null $stdClass
-     * @param Entity1|null $entity
-     */
     public function __construct(
-        array $array = null,
-        array $associativeArray = null,
-        \stdClass $stdClass = null,
-        Entity1 $entity = null
+        #[SerializedName('array')] #[Type('array')] private readonly ?array $array = null,
+        #[SerializedName('associative_array')] #[Type('array')] private readonly ?array $associativeArray = null,
+        #[SerializedName('std_class')] #[Type('object')] private readonly ?\stdClass $stdClass = null,
+        #[SerializedName('entity')] #[Type(self::class)] private ?Entity1 $entity = null
     ) {
-        $this->array = $array;
-        $this->associativeArray = $associativeArray;
         $this->emptyStdClass = new \stdClass();
-        $this->stdClass = $stdClass;
-        $this->entity = $entity;
     }
 
-    /**
-     * @param Entity1|null $entity
-     * @return Entity1
-     */
-    public function setEntity($entity)
+    public function setEntity(self $entity): self
     {
         $this->entity = $entity;
+
         return $this;
     }
 }

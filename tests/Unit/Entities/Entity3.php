@@ -2,28 +2,18 @@
 
 namespace JWorman\Serializer\Tests\Unit\Entities;
 
-use JWorman\Serializer\Annotations as Serializer;
+use JWorman\Serializer\Attribute\SerializedName;
+use JWorman\Serializer\Attribute\Type;
 
 class Entity3
 {
-    const CLASS_NAME = __CLASS__;
+    #[SerializedName('string')]
+    #[Type('string')]
+    private string $string = 'fuzzbizz';
 
-    /**
-     * @var Entity2[]
-     * @Serializer\SerializedName("entities")
-     * @Serializer\Type("array<JWorman\\Serializer\\Tests\\Unit\\Entities\\Entity2>")
-     */
-    private $entities;
-
-    /**
-     * @var string
-     * @Serializer\SerializedName("string")
-     * @Serializer\Type("string")
-     */
-    private $string = 'fuzzbizz';
-
-    public function __construct(array $entities)
-    {
-        $this->entities = $entities;
+    public function __construct(
+        #[SerializedName('entities')]
+        #[Type('array<'.Entity2::class.'>')] private readonly array $entities
+    ) {
     }
 }
